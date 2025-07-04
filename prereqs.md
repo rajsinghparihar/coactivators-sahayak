@@ -5,8 +5,8 @@
 ## LangChain for LLM Application Development
 https://learn.deeplearning.ai/courses/langchain/lesson/u9olq/introduction
 
-## Functions, Tools and Agents
-https://learn.deeplearning.ai/courses/functions-tools-agents-langchain/lesson/rtwb1/introduction
+LangChain Chat with Your Data (optional)
+https://learn.deeplearning.ai/courses/langchain-chat-with-your-data/lesson/snupv/introduction
 
 ## Agentic AI with LangGraph
 https://learn.deeplearning.ai/courses/ai-agents-in-langgraph/lesson/qyrpc/introduction 
