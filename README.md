@@ -1,4 +1,4 @@
-# coactivators-sahayak
+# Sahayak
 Project repo for Google Cloud Agentic AI Day Hackathon: Team CoActiVators
 
 ![Profile](profile.png)
