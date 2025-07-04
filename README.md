@@ -13,6 +13,8 @@ Project repo for Google Cloud Agentic AI Day Hackathon: Team CoActiVators
 
 ## Think about:
 - All constraints + Flow + tech stack + tools + agentic design + Memory
++
+- think about Guardrails and cases we need to limit.
 
 ## What more to think of:
 - Extra Features for the application
