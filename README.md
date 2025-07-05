@@ -1,5 +1,5 @@
 # Sahayak
-Project repo for Google Cloud Agentic AI Day Hackathon: Team CoActiVators
+ Project repo for Google Cloud Agentic AI Day Hackathon: Team CoActiVators
 
 ![Profile](profile.png)
 
@@ -21,6 +21,10 @@ Project repo for Google Cloud Agentic AI Day Hackathon: Team CoActiVators
 
 # Introduction document
 https://docs.google.com/document/d/1v-sD2YkhISmUVdg6NY_q9rUKCrU5Wh6z_t7NISQiE0o/edit?usp=sharing
+
+# Visual aid Generator
+https://docs.google.com/document/d/17IGGVdxWTPUEK5PfqqUMAPD3Kd_8Ft5YLRKW59TPGpw/edit?usp=sharing
+
 
 # Project Overview
 
