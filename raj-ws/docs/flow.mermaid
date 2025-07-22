@@ -1,0 +1,49 @@
+graph TD
+A[Teacher Uploads Textbook Image & Specifies Grades/Needs] --> B{Document Parser<br>Extracts Content from Image};
+B --> C[Workflow Starts];
+C --> D{Main Agent<br>Analyzes Content & Document Generation Requirements};
+subgraph Handoffs
+    D --> E[Content Simplifier Agent];
+    D --> F[Variation Agent];
+    D --> G[Translator Agent];
+    D --> I[Visual Aid Agent];
+end
+
+E --> J[Teacher Reviews / Edits & Approves Generated Materials];
+F --> J;
+G --> J;
+I --> J;
+
+J --> K[Material Distribution];
+
+subgraph Content
+    L[Conversation History]
+    M[Current Query]
+    N[Teacher Profile]
+    O[Location and Language]
+    P[Grades Taught]
+    Q[Subjects Handled]
+end
+L -- Context --> D;
+M -- Context --> D;
+N -- Context --> D;
+O -- Context --> D;
+P -- Context --> D;
+Q -- Context --> D;
+
+style A fill:#f9f,stroke:#000,stroke-width:2px;
+style B fill:#bbf,stroke:#fff,stroke-width:2px;
+style C fill:#ccf,stroke:#fff,stroke-width:2px;
+style D fill:#bbf,stroke:#fff,stroke-width:2px;
+style E fill:#fbc,stroke:#fff,stroke-width:2px;
+style F fill:#bfb,stroke:#fff,stroke-width:2px;
+style G fill:#cbf,stroke:#fff,stroke-width:2px;
+style I fill:#fcc,stroke:#fff,stroke-width:2px;
+style J fill:#bbf,stroke:#fff,stroke-width:2px;
+style K fill:#ccf,stroke:#fff,stroke-width:2px;
+style L fill:#eee,stroke:#fff,stroke-width:1px;
+style M fill:#eee,stroke:#fff,stroke-width:1px;
+style N fill:#eee,stroke:#fff,stroke-width:1px;
+style O fill:#eee,stroke:#fff,stroke-width:1px;
+style P fill:#eee,stroke:#fff,stroke-width:1px;
+style Q fill:#eee,stroke:#fff,stroke-width:1px;

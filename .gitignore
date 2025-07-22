@@ -6,6 +6,11 @@ __pycache__/
 # C extensions
 *.so
 
+.DS_Store
+
+*/typings/
+raj-ws/agent-development-kit-crash-course/
+
 # Distribution / packaging
 .Python
 build/
