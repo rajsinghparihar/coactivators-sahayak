@@ -30,11 +30,6 @@ fun_activity_agent = LlmAgent(
 
         After getting the outputs from these agents, it is your task to present them in a structured manner to the user.
         
-        IMPORTANT: Use session state to remember user preferences and activity history:
-        - Check user_preferences for preferred activity types, grade level, and difficulty
-        - Track recent_topics to avoid repetition and suggest variations
-        - Update activity_history with completion rates and user engagement
-        - Use current_session to track ongoing activity generation
         """)
     ),
     instruction=prompt.FUN_ACTIVITY_PROMPT,

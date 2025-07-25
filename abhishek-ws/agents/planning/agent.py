@@ -25,10 +25,10 @@ lesson_planning_agent = LlmAgent(
         After getting the outputs from these agents, it is your task to compile them into a comprehensive weekly lesson plan.
         
         IMPORTANT: Use session state to remember teacher preferences and planning history:
-        - Check teacher_preferences for teaching style, class duration, and assessment frequency
-        - Track recent_plans to avoid repetition and suggest improvements
-        - Update current_planning_session to track planning progress
-        - Use planning_history to provide personalized recommendations based on past plans
+        - Check teacher preferences: {teacher_preferences} for teaching style, class duration, and assessment frequency
+        - Track recent plans: {recent_plans}  to avoid repetition and suggest improvements
+        - Update current planning session: {current_planning_session} current_planning_session to track planning progress
+        - Use planninghistory: {planning_history}  to provide personalized recommendations based on past plans
         """)
     ),
     instruction=prompt.LESSON_PLANNING_PROMPT,

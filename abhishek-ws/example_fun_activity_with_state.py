@@ -9,6 +9,7 @@ import asyncio
 from google.adk.sessions import InMemorySessionService
 from google.adk.runners import Runner
 from google.genai import types
+from google.adk.events.event import Event
 from agents.fun_activity import fun_activity_agent
 from utils import (
     initialize_fun_activity_state,
@@ -73,7 +74,7 @@ async def run_fun_activity_with_state():
             response1 = event
     
     if response1:
-        print(f"Response: {response1.content}")
+        print(f"Response: {response1.content.parts[0].text}")
     else:
         print("No response received")
     
@@ -148,7 +149,6 @@ async def run_fun_activity_with_state():
     print(f"Recent Topics: {session.state.get('recent_topics', [])}")
     print(f"Activity History: {session.state.get('activity_history', {})}")
     print(f"Suggested Activity Types: {suggest_activity_types(session.state)}")
-    
     return session
 
 
