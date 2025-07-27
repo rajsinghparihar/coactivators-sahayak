@@ -27,6 +27,7 @@ env/
 ENV/
 env.bak/
 venv.bak/
+node_modules/
 sahayak-vercel-service-acc-key.json
 
 # UV Python Package Manager
