@@ -247,11 +247,12 @@ class JSONFragmentProcessor {
   /**
    * Check if a parsed object is a valid part (has text, function_call, or function_response)
    */
-  private isValidPart(part: any): part is AgentEngineContentPart {
+  private isValidPart(part: unknown): part is AgentEngineContentPart {
+    const p = part as Partial<AgentEngineContentPart>;
     return (
-      (part.text && typeof part.text === "string") ||
-      (part.function_call && typeof part.function_call === "object") ||
-      (part.function_response && typeof part.function_response === "object")
+      (typeof p.text === "string" && p.text.length > 0) ||
+      (typeof p.function_call === "object" && p.function_call !== null) ||
+      (typeof p.function_response === "object" && p.function_response !== null)
     );
   }
 

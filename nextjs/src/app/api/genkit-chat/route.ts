@@ -173,7 +173,7 @@ When analyzing uploaded files (including PDFs, documents, and other materials), 
 User ID: ${userId}
 Session ID: ${sessionId}`;
 
-    let prompt: any;
+    let prompt: Array<{ text: string } | { media: { url: string } }> | string;
     
     // If there's a file, handle it appropriately based on type
     if (fileUrl && fileName) {

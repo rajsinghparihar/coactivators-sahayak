@@ -108,7 +108,11 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     }
     
     // Show how this would be formatted for Genkit
-    let genkitFormat: any;
+    type GenkitFormat = 
+      | { type: 'multimodal'; prompt: Array<{ text: string } | { media: { url: string } }> }
+      | { type: 'text'; prompt: string };
+
+    let genkitFormat: GenkitFormat;
     if (isBase64) {
       genkitFormat = {
         type: 'multimodal',
