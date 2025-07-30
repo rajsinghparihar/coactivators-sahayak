@@ -335,7 +335,7 @@ export function logStreamResponse(
  */
 export function createIncrementalSSEEvent(
   text: string,
-  author: string = "goal-planning-agent"
+  author: string = "sahayak"
 ): string {
   const incrementalEvent = {
     content: { parts: [{ text }] },

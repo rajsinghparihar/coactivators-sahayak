@@ -44,7 +44,7 @@ class AgentConfiguration:
     model: str = os.environ.get("MODEL", "gemini-2.5-flash")
 
     # Deployment name (can have hyphens, used for display in Agent Engine)
-    deployment_name: str = os.environ.get("AGENT_NAME", "goal-planning-agent")
+    deployment_name: str = os.environ.get("AGENT_NAME", "sahayak")
 
     # Google Cloud settings
     project_id = None

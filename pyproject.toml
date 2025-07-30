@@ -12,7 +12,9 @@ authors = [
 ]
 dependencies = [
     "google-adk==1.6.1",
-    "python-dotenv",  
+    "mermaid-py>=0.8.0",
+    "pillow>=11.3.0",
+    "python-dotenv",
 ]
 
 requires-python = ">=3.10,<3.13"

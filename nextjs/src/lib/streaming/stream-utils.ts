@@ -17,22 +17,108 @@ import { v4 as uuidv4 } from "uuid";
  * @returns User-friendly title for the activity
  */
 export function getEventTitle(agentName: string): string {
-  // For single agent, focus on activity type rather than agent name
-  if (agentName === "goal_planning_agent") {
-    return "🎯 Planning Strategy";
+  // Root agent
+  if (agentName === "sahayak") {
+    return "🤖 Sahayak Assistant";
+  }
+
+  // Main agents
+  if (agentName === "differentiated_materials_agent") {
+    return "📚 Creating Differentiated Materials";
+  }
+  if (agentName === "hyper_local_content_agent") {
+    return "🌍 Generating Local Content";
+  }
+  if (agentName === "knowledge_base_agent") {
+    return "📖 Knowledge Base Assistant";
+  }
+  if (agentName === "visual_aid_agent") {
+    return "🎨 Creating Visual Aids";
+  }
+  if (agentName === "fun_activity_agent") {
+    return "🎮 Generating Fun Activities";
+  }
+  if (agentName === "lesson_planning_agent") {
+    return "📋 Planning Weekly Lessons";
+  }
+
+  // Differentiated Materials sub-agents
+  if (agentName === "worksheet_generator_agent") {
+    return "📝 Generating Worksheets";
+  }
+  if (agentName === "worksheet_creator_agent") {
+    return "📄 Creating Worksheet";
+  }
+  if (agentName === "answerkey_creator_agent") {
+    return "✅ Creating Answer Key";
+  }
+  if (agentName === "variation_generator_agent") {
+    return "🔄 Generating Variations";
+  }
+  if (agentName === "grade_adapter_agent") {
+    return "📊 Adapting for Grade Level";
+  }
+
+  // Visual Aid sub-agents
+  if (agentName === "mindmap_generator_agent") {
+    return "🧠 Creating Mind Maps";
+  }
+  if (agentName === "diagram_creator_agent") {
+    return "📊 Creating Diagrams";
+  }
+  if (agentName === "visual_guide_generator_agent") {
+    return "📖 Creating Visual Guides";
+  }
+
+  // Fun Activity sub-agents
+  if (agentName === "quiz_generator_agent") {
+    return "❓ Creating Quizzes";
+  }
+  if (agentName === "scenario_generator_agent") {
+    return "🎭 Creating Scenarios";
+  }
+  if (agentName === "fitb_generator_agent") {
+    return "🔤 Creating Fill-in-the-Blanks";
+  }
+  if (agentName === "word_game_generator_agent") {
+    return "🎯 Creating Word Games";
+  }
+
+  // Lesson Planning sub-agents
+  if (agentName === "subtopic_decomposer_agent") {
+    return "📋 Breaking Down Topics";
+  }
+  if (agentName === "objective_mapper_agent") {
+    return "🎯 Mapping Learning Objectives";
+  }
+  if (agentName === "content_planner_agent") {
+    return "📚 Planning Content";
+  }
+
+  // Fallback patterns for any new agents
+  if (agentName.includes("worksheet") || agentName.includes("worksheet")) {
+    return "📝 Creating Worksheets";
+  }
+  if (agentName.includes("answer") || agentName.includes("key")) {
+    return "✅ Creating Answer Keys";
+  }
+  if (agentName.includes("visual") || agentName.includes("diagram")) {
+    return "🎨 Creating Visual Aids";
+  }
+  if (agentName.includes("activity") || agentName.includes("game")) {
+    return "🎮 Creating Activities";
   }
   if (agentName.includes("plan") || agentName.includes("planning")) {
-    return "🎯 Planning Strategy";
+    return "📋 Planning Lessons";
   }
-  if (agentName.includes("research") || agentName.includes("search")) {
-    return "🔍 Researching Information";
+  if (agentName.includes("content") || agentName.includes("local")) {
+    return "🌍 Creating Content";
   }
-  if (agentName.includes("analysis") || agentName.includes("evaluating")) {
-    return "📊 Analyzing Content";
+  if (agentName.includes("knowledge") || agentName.includes("explain")) {
+    return "📖 Knowledge Assistant";
   }
-  if (agentName.includes("writing") || agentName.includes("report")) {
-    return "✍️ Writing Response";
-  }
+
+  // Default fallback
   return `Processing (${agentName || "AI Agent"})`;
 }
 
