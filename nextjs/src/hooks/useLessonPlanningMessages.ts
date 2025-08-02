@@ -1,9 +1,10 @@
 import { useState, useCallback } from "react";
 import { Message } from "@/types";
+import { ProcessedEvent } from "@/components/ActivityTimeline";
 
 export function useLessonPlanningMessages() {
   const [lessonMessages, setLessonMessagesState] = useState<Message[]>([]);
-  const [lessonMessageEvents, setLessonMessageEventsState] = useState<Map<string, any[]>>(new Map());
+  const [lessonMessageEvents, setLessonMessageEventsState] = useState<Map<string, ProcessedEvent[]>>(new Map());
   const [lessonWebsiteCount, setLessonWebsiteCount] = useState(0);
 
   const addLessonMessage = useCallback((message: Message) => {
@@ -18,7 +19,7 @@ export function useLessonPlanningMessages() {
     }
   }, []);
 
-  const setLessonMessageEvents = useCallback((events: Map<string, any[]> | ((prev: Map<string, any[]>) => Map<string, any[]>)) => {
+  const setLessonMessageEvents = useCallback((events: Map<string, ProcessedEvent[]> | ((prev: Map<string, ProcessedEvent[]>) => Map<string, ProcessedEvent[]>)) => {
     if (typeof events === "function") {
       setLessonMessageEventsState(events);
     } else {
