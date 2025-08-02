@@ -15,6 +15,12 @@ export const metadata: Metadata = {
   icons: {
     icon: "/favicon.ico",
   },
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 1,
+    userScalable: false,
+  },
 };
 
 export default function RootLayout({
@@ -32,7 +38,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <div className="relative flex min-h-screen flex-col">
-            <main className="flex-1">{children}</main>
+            <main className="flex-1 w-full">{children}</main>
           </div>
           <Toaster />
         </ThemeProvider>

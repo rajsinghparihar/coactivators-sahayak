@@ -66,6 +66,30 @@
   body {
     @apply bg-background text-foreground;
   }
+  
+  /* Mobile-specific styles */
+  @media (max-width: 640px) {
+    /* Prevent zoom on input focus on iOS */
+    input, textarea, select {
+      font-size: 16px !important;
+    }
+    
+    /* Improve touch targets */
+    button, [role="button"] {
+      min-height: 44px;
+      min-width: 44px;
+    }
+    
+    /* Prevent horizontal scroll */
+    body {
+      overflow-x: hidden;
+    }
+    
+    /* Improve scrolling on mobile */
+    * {
+      -webkit-overflow-scrolling: touch;
+    }
+  }
 }
 
 /* Custom animation classes */

@@ -78,7 +78,7 @@ export function InputForm({
       <form onSubmit={handleSubmit} className="relative">
         <div
           className={`
-          relative flex items-end gap-3 p-3 rounded-2xl border transition-all duration-200
+          relative flex items-end gap-2 sm:gap-3 p-2 sm:p-3 rounded-2xl border transition-all duration-200
           ${
             isFocused
               ? "border-blue-400/50 bg-white shadow-lg shadow-blue-500/10"
@@ -101,9 +101,9 @@ export function InputForm({
               className="
                 resize-none border-0 bg-transparent text-gray-900 placeholder-gray-500
                 focus:ring-0 focus:outline-none focus:border-0 focus:shadow-none
-                min-h-[80px] max-h-48
+                min-h-[60px] sm:min-h-[80px] max-h-48
                 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-gray-400
-                px-0 py-3
+                px-0 py-2 sm:py-3 text-sm sm:text-base
               "
               style={{
                 fontSize: "16px",
@@ -123,7 +123,7 @@ export function InputForm({
           {/* File Upload Button */}
           <div className="flex items-center">
             <label className="cursor-pointer flex items-center">
-              <Paperclip className="h-5 w-5 text-slate-400 hover:text-emerald-400" />
+              <Paperclip className="h-4 w-4 sm:h-5 sm:w-5 text-slate-400 hover:text-emerald-400" />
               <input
                 type="file"
                 className="hidden"
@@ -132,7 +132,7 @@ export function InputForm({
               />
             </label>
             {selectedFile && (
-              <span className="ml-2 text-xs text-slate-300 truncate max-w-[120px]">{selectedFile.name}</span>
+              <span className="ml-1 sm:ml-2 text-xs text-slate-300 truncate max-w-[80px] sm:max-w-[120px]">{selectedFile.name}</span>
             )}
           </div>
           {/* Send Button */}
@@ -141,21 +141,21 @@ export function InputForm({
             size="sm"
             disabled={(!inputValue.trim() && !selectedFile) || isLoading || uploading}
             className="
-              h-9 px-4 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700
+              h-8 sm:h-9 px-3 sm:px-4 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700
               text-white border-0 shadow-lg transition-all duration-200
               disabled:opacity-50 disabled:cursor-not-allowed
               disabled:bg-slate-600 disabled:from-slate-600 disabled:to-slate-600
-              flex items-center gap-2
+              flex items-center gap-1 sm:gap-2 text-xs sm:text-sm
             "
           >
             {isLoading || uploading ? (
               <>
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <Loader2 className="h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
                 <span className="hidden sm:inline">{uploading ? "Uploading..." : "Planning..."}</span>
               </>
             ) : (
               <>
-                <Send className="h-4 w-4" />
+                <Send className="h-3 w-3 sm:h-4 sm:w-4" />
                 <span className="hidden sm:inline">
                   {context === "chat" ? "Send" : "Plan Goal"}
                 </span>

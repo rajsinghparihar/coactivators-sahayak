@@ -1,17 +1,21 @@
 "use client";
 
-import { useRef, useCallback, useEffect } from "react";
+import { useRef, useCallback, useEffect, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { ChatMessagesView } from "@/components/ChatMessagesView";
+import { LessonPlanningView } from "@/components/LessonPlanningView";
+import { SidebarNavigation } from "@/components/SidebarNavigation";
 import { BackendHealthChecker } from "@/components/chat/BackendHealthChecker";
 import { useSession } from "@/hooks/useSession";
 import { useMessages } from "@/hooks/useMessages";
+import { useLessonPlanningMessages } from "@/hooks/useLessonPlanningMessages";
 import { useStreamingManager } from "@/components/chat/StreamingManager";
 import { useGenkitChat } from "@/hooks/useGenkitChat";
 import { Message } from "@/types";
 
 export default function ChatInterface() {
   const scrollAreaRef = useRef<HTMLDivElement | null>(null);
+  const [activeTab, setActiveTab] = useState("chat");
 
   // Use custom hooks for state management
   const {
@@ -34,6 +38,17 @@ export default function ChatInterface() {
     saveMessagesToStorage,
     loadMessagesFromStorage,
   } = useMessages();
+
+  // Separate state for lesson planning
+  const {
+    lessonMessages,
+    lessonMessageEvents,
+    lessonWebsiteCount,
+    addLessonMessage,
+    setLessonMessages,
+    setLessonMessageEvents,
+    updateLessonWebsiteCount,
+  } = useLessonPlanningMessages();
 
   // Streaming management for text-only requests
   const streamingManager = useStreamingManager({
@@ -90,6 +105,61 @@ export default function ChatInterface() {
     },
   });
 
+  // Separate streaming manager for lesson planning
+  const lessonStreamingManager = useStreamingManager({
+    userId,
+    sessionId,
+    onMessageUpdate: (message: Message) => {
+      console.log("LessonStreamingManager onMessageUpdate called:", { id: message.id, type: message.type, contentLength: message.content.length });
+      setLessonMessages((prev) => {
+        // Check if message already exists
+        const existingIndex = prev.findIndex((msg) => msg.id === message.id);
+
+        if (existingIndex >= 0) {
+          // Update existing message
+          console.log("Updating existing lesson message:", message.id);
+          return prev.map((msg) => (msg.id === message.id ? message : msg));
+        } else {
+          // Add new message
+          console.log("Adding new lesson message:", message.id);
+          return [...prev, message];
+        }
+      });
+    },
+    onEventUpdate: (messageId, event) => {
+      setLessonMessageEvents((prev) => {
+        const newMap = new Map(prev);
+        const existingEvents = newMap.get(messageId) || [];
+        newMap.set(messageId, [...existingEvents, event]);
+        return newMap;
+      });
+    },
+    onWebsiteCountUpdate: updateLessonWebsiteCount,
+  });
+
+  // Separate Genkit chat for lesson planning
+  const lessonGenkitChat = useGenkitChat({
+    userId: userId || "",
+    sessionId: sessionId || "",
+    onMessageUpdate: (message: Message) => {
+      console.log("LessonGenkitChat onMessageUpdate called:", { id: message.id, type: message.type, contentLength: message.content.length });
+      setLessonMessages((prev) => {
+        // Check if message already exists
+        const existingIndex = prev.findIndex((msg) => msg.id === message.id);
+
+        if (existingIndex >= 0) {
+          // Update existing message
+          console.log("Updating existing lesson message:", message.id);
+          return prev.map((msg) => (msg.id === message.id ? message : msg));
+        } else {
+          // Add new message
+          console.log("Adding new lesson message:", message.id);
+          return [...prev, message];
+        }
+      });
+    },
+  });
+
   // Load messages when session changes
   useEffect(() => {
     if (userId && sessionId) {
@@ -127,8 +197,8 @@ export default function ChatInterface() {
     }
   }, [messages]);
 
-  // Handle message submission - route to appropriate handler based on file presence
-  const handleSubmit = useCallback(
+  // Handle chat message submission
+  const handleChatSubmit = useCallback(
     async (
       query: string,
       fileUrl?: string,
@@ -190,8 +260,71 @@ export default function ChatInterface() {
     [userId, sessionId, addMessage, streamingManager, genkitChat, handleSessionSwitch]
   );
 
-  // Handle cancellation - support both streaming and Genkit requests
-  const handleCancel = useCallback((): void => {
+  // Handle lesson planning message submission
+  const handleLessonPlanningSubmit = useCallback(
+    async (
+      query: string,
+      fileUrl?: string,
+      fileName?: string,
+      requestUserId?: string,
+      requestSessionId?: string
+    ): Promise<void> => {
+      if (!query.trim() && !fileUrl) return;
+
+      // Use provided userId or current state
+      const currentUserId = requestUserId || userId;
+      if (!currentUserId) {
+        throw new Error("User ID is required to send messages");
+      }
+
+      try {
+        // Use provided session ID or current state
+        let currentSessionId = requestSessionId || sessionId;
+
+        if (!currentSessionId) {
+          console.log("No session ID available, generating new one");
+          currentSessionId = uuidv4();
+          handleSessionSwitch(currentSessionId);
+        }
+
+        // Add user message to lesson planning
+        const userMessage: Message = {
+          type: "human",
+          content: query,
+          id: uuidv4(),
+          timestamp: new Date(),
+          ...(fileUrl ? { fileUrl } : {}),
+          ...(fileName ? { fileName } : {}),
+        };
+
+        addLessonMessage(userMessage);
+
+        // Route to appropriate handler based on file presence
+        if (fileUrl && fileName) {
+          // Use Genkit for file requests
+          await lessonGenkitChat.sendMessage(query, fileUrl, fileName);
+        } else {
+          // Use SSE streaming for text-only requests
+          await lessonStreamingManager.submitMessage(query);
+        }
+      } catch (error) {
+        console.error("Error:", error);
+        const errorMessage: Message = {
+          type: "ai",
+          content: `Sorry, there was an error processing your request: ${
+            error instanceof Error ? error.message : "Unknown error"
+          }`,
+          id: uuidv4(),
+          timestamp: new Date(),
+        };
+        addLessonMessage(errorMessage);
+      }
+    },
+    [userId, sessionId, addLessonMessage, lessonStreamingManager, lessonGenkitChat, handleSessionSwitch]
+  );
+
+  // Handle chat cancellation
+  const handleChatCancel = useCallback((): void => {
     streamingManager.cancelStream();
     // Remove the last message if it's an empty AI message
     setMessages((prev) => {
@@ -201,6 +334,18 @@ export default function ChatInterface() {
       return filtered;
     });
   }, [streamingManager, setMessages]);
+
+  // Handle lesson planning cancellation
+  const handleLessonPlanningCancel = useCallback((): void => {
+    lessonStreamingManager.cancelStream();
+    // Remove the last message if it's an empty AI message
+    setLessonMessages((prev) => {
+      const filtered = prev.filter(
+        (msg) => msg.type !== "ai" || msg.content.trim() !== ""
+      );
+      return filtered;
+    });
+  }, [lessonStreamingManager, setLessonMessages]);
 
   // Handle session switching with message persistence
   const handleSessionSwitchWrapper = useCallback(
@@ -217,32 +362,51 @@ export default function ChatInterface() {
   );
 
   // Combine loading states from both streaming and Genkit
-  const isLoading = streamingManager.isLoading || genkitChat.isLoading;
+  const isChatLoading = streamingManager.isLoading || genkitChat.isLoading;
+  const isLessonPlanningLoading = lessonStreamingManager.isLoading || lessonGenkitChat.isLoading;
 
   return (
-    <div className="min-h-screen flex flex-col bg-white">
-      <main className="flex-1 flex flex-col">
-        <div
-          className={`flex-1 overflow-y-auto ${
-            messages.length === 0 ? "flex" : ""
-          }`}
-        >
+    <div className="h-screen flex flex-col bg-white w-full">
+      <main className="flex-1 flex flex-col w-full">
+        <div className="flex-1 w-full">
           <BackendHealthChecker>
-            <ChatMessagesView
-              messages={messages}
-              isLoading={isLoading}
-              scrollAreaRef={scrollAreaRef}
-              onSubmit={handleSubmit}
-              onCancel={handleCancel}
+            <SidebarNavigation
+              activeTab={activeTab}
+              onTabChange={setActiveTab}
               sessionId={sessionId}
               onSessionIdChange={handleSessionSwitchWrapper}
-              messageEvents={messageEvents}
-              websiteCount={websiteCount}
               userId={userId}
               onUserIdChange={handleUserIdChange}
               onUserIdConfirm={handleUserIdConfirm}
               onCreateSession={handleCreateNewSession}
-            />
+            >
+              {activeTab === "chat" && (
+                <ChatMessagesView
+                  messages={messages}
+                  isLoading={isChatLoading}
+                  scrollAreaRef={scrollAreaRef}
+                  onSubmit={handleChatSubmit}
+                  onCancel={handleChatCancel}
+                  sessionId={sessionId}
+                  onSessionIdChange={handleSessionSwitchWrapper}
+                  messageEvents={messageEvents}
+                  websiteCount={websiteCount}
+                  userId={userId}
+                  onUserIdChange={handleUserIdChange}
+                  onUserIdConfirm={handleUserIdConfirm}
+                  onCreateSession={handleCreateNewSession}
+                />
+              )}
+              
+              {activeTab === "lesson-planning" && (
+                <LessonPlanningView
+                  messages={lessonMessages}
+                  isLoading={isLessonPlanningLoading}
+                  onSubmit={handleLessonPlanningSubmit}
+                  onCancel={handleLessonPlanningCancel}
+                />
+              )}
+            </SidebarNavigation>
           </BackendHealthChecker>
         </div>
       </main>

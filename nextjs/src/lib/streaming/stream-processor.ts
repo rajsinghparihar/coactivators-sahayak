@@ -270,30 +270,29 @@ function processTextContent(
 
   // Handle different agent types like the working example
   if (
-    agent === "lesson_planning_agent" ||
-    agent === "subtopic_decomposer_agent" ||
-    agent === "content_planner_agent" ||
-    agent === "objective_mapper_agent" ||
-    agent === "visual_aid_agent" ||
-    agent === "diagram_creator_agent" ||
-    agent === "mindmap_generator_agent" ||
-    agent === "visual_guide_generator_agent" ||
-    agent === "differentiated_materials_agent" ||
-    agent === "worksheet_creator_agent" ||
-    agent === "answerkey_creator_agent" ||
-    agent === "grade_adapter_agent" ||
-    agent === "variation_generator_agent" ||
-    agent === "hyper_local_content_agent" ||
-    agent === "knowledge_base_agent" ||
-    agent === "fun_activity_agent" ||
-    agent === "quiz_generator_agent" ||
-    agent === "scenario_generator_agent" ||
-    agent === "word_game_generator_agent" ||
-    agent === "fitb_generator_agent" ||
-    agent === "root_agent" ||
-    agent === "sahayak" ||
-    agent === "goal_planning_agent" ||
-    agent.includes("sahayak")
+    agent.includes("lesson_planning") ||
+    agent.includes("subtopic_decomposer") ||
+    agent.includes("content_planner") ||
+    agent.includes("objective_mapper") ||
+    agent.includes("visual_aid") ||
+    agent.includes("diagram_creator") ||
+    agent.includes("mindmap_generator") ||
+    agent.includes("visual_guide_generator") ||
+    agent.includes("differentiated_materials") ||
+    agent.includes("worksheet_creator") ||
+    agent.includes("answerkey_creator") ||
+    agent.includes("grade_adapter") ||
+    agent.includes("variation_generator") ||
+    agent.includes("hyper_local_content") ||
+    agent.includes("knowledge_base") ||
+    agent.includes("fun_activity") ||
+    agent.includes("quiz_generator") ||
+    agent.includes("scenario_generator") ||
+    agent.includes("word_game_generator") ||
+    agent.includes("fitb_generator") ||
+    agent.includes("root") ||
+    agent.includes("sahayak") ||
+    agent.includes("goal_planning")
   ) {
     // MAIN PLANNING AGENT → Stream text directly to main message (real-time effect)
     createDebugLog(

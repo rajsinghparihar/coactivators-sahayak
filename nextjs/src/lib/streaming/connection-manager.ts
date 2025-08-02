@@ -319,6 +319,24 @@ export class StreamingConnectionManager {
         } else if (processedFinalEvent) {
           console.log("⏭️ Skipping final event processing - already processed");
         }
+        
+        // Ensure final message is sent with complete content
+        if (accumulatedTextRef.current.trim()) {
+          console.log("📤 Sending final message with complete content:", {
+            contentLength: accumulatedTextRef.current.length,
+            contentPreview: accumulatedTextRef.current.substring(0, 100)
+          });
+          
+          const finalMessage: Message = {
+            type: "ai",
+            content: accumulatedTextRef.current.trim(),
+            id: aiMessageId,
+            timestamp: new Date(),
+          };
+          
+          callbacks.onMessageUpdate(finalMessage);
+        }
+        
         createDebugLog("SSE END", "Stream processing finished");
         return; // Exit recursion
       }
