@@ -16,18 +16,9 @@ interface ChatMessagesViewProps {
   scrollAreaRef: React.RefObject<HTMLDivElement | null>;
   onSubmit: (query: string, fileUrl?: string, fileName?: string) => void;
   onCancel: () => void;
-  sessionId: string;
-  onSessionIdChange: (sessionId: string) => void;
   displayData?: string | null;
   messageEvents?: Map<string, ProcessedEvent[]>;
   websiteCount?: number;
-  userId: string;
-  onUserIdChange: (newUserId: string) => void;
-  onUserIdConfirm: (confirmedUserId: string) => void;
-  onCreateSession: (
-    sessionUserId: string,
-    initialMessage?: string
-  ) => Promise<void>;
 }
 
 export function ChatMessagesView({
@@ -36,14 +27,8 @@ export function ChatMessagesView({
   scrollAreaRef,
   onSubmit,
   onCancel,
-  sessionId,
-  onSessionIdChange,
   messageEvents,
   websiteCount,
-  userId,
-  onUserIdChange,
-  onUserIdConfirm,
-  onCreateSession,
 }: ChatMessagesViewProps): React.JSX.Element {
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
 
@@ -61,45 +46,22 @@ export function ChatMessagesView({
       {/* Fixed Header */}
       <div className="relative z-10 flex-shrink-0 border-b border-gray-200 bg-white/95 backdrop-blur-sm shadow-sm">
         <div className="w-full px-4 py-3 sm:px-6">
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-md">
-                <Bot className="h-4 w-4 text-white" />
-              </div>
-              <div>
-                <h1 className="text-lg font-semibold text-gray-900">
-                  Sahayak
-                </h1>
-                <p className="text-xs text-gray-500">Powered by Google Gemini</p>
-              </div>
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-md">
+              <Bot className="h-4 w-4 text-white" />
             </div>
-
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
-              {/* User ID Management */}
-              <UserIdInput
-                currentUserId={userId}
-                onUserIdChange={onUserIdChange}
-                onUserIdConfirm={onUserIdConfirm}
-                className="text-xs"
-              />
-
-              {/* Session Management */}
-              {userId && (
-                <SessionSelector
-                  currentUserId={userId}
-                  currentSessionId={sessionId}
-                  onSessionSelect={onSessionIdChange}
-                  onCreateSession={onCreateSession}
-                  className="text-xs"
-                />
-              )}
+            <div>
+              <h1 className="text-lg font-semibold text-gray-900">
+                Sahayak
+              </h1>
+              <p className="text-xs text-gray-500">Powered by Google Gemini</p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Messages Area - with bottom padding to account for fixed input */}
-      <div className="relative z-10 flex-1 overflow-hidden pb-32 sm:pb-36">
+      <div className="relative z-10 flex-1 overflow-hidden pb-32 sm:pb-36 h-full">
         {messages.length === 0 ? (
           /* AI Goal Planner Placeholder */
           <div className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 text-center min-h-[60vh]">
@@ -220,7 +182,7 @@ export function ChatMessagesView({
         {isLoading &&
           messages.length > 0 &&
           messages[messages.length - 1].type === "human" && (
-            <div className="absolute bottom-36 sm:bottom-40 left-1/2 transform -translate-x-1/2">
+            <div className="absolute bottom-36 sm:bottom-40 left-1/2 transform -translate-x-1/2 z-20">
               <div className="flex items-start gap-2 sm:gap-3">
                 <div className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-md border border-blue-400/30">
                   <Bot className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
@@ -236,8 +198,8 @@ export function ChatMessagesView({
           )}
       </div>
 
-      {/* Fixed Input Area - absolutely positioned at bottom */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 border-t-2 border-gray-200 bg-white/95 backdrop-blur-md shadow-lg">
+      {/* Fixed Input Area - positioned relative to main content */}
+      <div className="absolute bottom-0 left-0 right-0 z-50 border-t-2 border-gray-200 bg-white/95 backdrop-blur-md shadow-lg">
         <div className="w-full px-4 py-3 sm:px-6 sm:py-4">
           <InputForm onSubmit={onSubmit} isLoading={isLoading} context="chat" />
           {isLoading && (

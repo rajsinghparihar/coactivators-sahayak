@@ -26,9 +26,9 @@ const Sidebar = React.forwardRef<HTMLDivElement, SidebarProps>(
           ref={ref}
           className={cn(
             "fixed left-0 top-0 z-50 h-screen w-64 bg-white border-r border-gray-200 shadow-lg transform transition-transform duration-300 ease-in-out",
-            // On mobile: slide in/out based on isOpen, On desktop: always visible
-            "lg:translate-x-0",
-            isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
+            // On mobile: slide in/out based on isOpen
+            // On desktop: slide in/out based on isOpen
+            isOpen ? "translate-x-0" : "-translate-x-full",
             className
           )}
           style={{ zIndex: 50 }}

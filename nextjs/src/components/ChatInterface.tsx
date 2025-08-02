@@ -48,6 +48,8 @@ export default function ChatInterface() {
     setLessonMessages,
     setLessonMessageEvents,
     updateLessonWebsiteCount,
+    saveLessonMessagesToStorage,
+    loadLessonMessagesFromStorage,
   } = useLessonPlanningMessages();
 
   // Streaming management for text-only requests
@@ -168,14 +170,25 @@ export default function ChatInterface() {
       // Reset other state for new session
       setMessageEvents(new Map());
       updateWebsiteCount(0);
+
+      // Load lesson planning messages for the session
+      const sessionLessonMessages = loadLessonMessagesFromStorage(userId, sessionId);
+      setLessonMessages(sessionLessonMessages);
+      // Reset lesson planning state for new session
+      setLessonMessageEvents(new Map());
+      updateLessonWebsiteCount(0);
     }
   }, [
     userId,
     sessionId,
     loadMessagesFromStorage,
+    loadLessonMessagesFromStorage,
     setMessages,
+    setLessonMessages,
     setMessageEvents,
+    setLessonMessageEvents,
     updateWebsiteCount,
+    updateLessonWebsiteCount,
   ]);
 
   // Save messages when they change
@@ -185,15 +198,36 @@ export default function ChatInterface() {
     }
   }, [userId, sessionId, messages, saveMessagesToStorage]);
 
+  // Save lesson planning messages when they change
+  useEffect(() => {
+    if (userId && sessionId && lessonMessages.length > 0) {
+      saveLessonMessagesToStorage(userId, sessionId, lessonMessages);
+    }
+  }, [userId, sessionId, lessonMessages, saveLessonMessagesToStorage]);
+
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
+    console.log("Auto-scroll effect triggered, messages length:", messages.length);
     if (scrollAreaRef.current) {
-      const scrollViewport = scrollAreaRef.current.querySelector(
-        "[data-radix-scroll-area-viewport]"
-      );
+      console.log("ScrollArea ref found:", scrollAreaRef.current);
+      // Try multiple selectors for the scroll viewport
+      const scrollViewport = 
+        scrollAreaRef.current.querySelector("[data-radix-scroll-area-viewport]") ||
+        scrollAreaRef.current.querySelector(".radix-scroll-area-viewport") ||
+        scrollAreaRef.current;
+      
       if (scrollViewport) {
-        scrollViewport.scrollTop = scrollViewport.scrollHeight;
+        console.log("Scroll viewport found:", scrollViewport);
+        // Use requestAnimationFrame to ensure DOM is updated
+        requestAnimationFrame(() => {
+          scrollViewport.scrollTop = scrollViewport.scrollHeight;
+          console.log("Scrolled to bottom, scrollTop:", scrollViewport.scrollTop, "scrollHeight:", scrollViewport.scrollHeight);
+        });
+      } else {
+        console.log("No scroll viewport found");
       }
+    } else {
+      console.log("No scrollAreaRef.current");
     }
   }, [messages]);
 
@@ -355,10 +389,15 @@ export default function ChatInterface() {
         saveMessagesToStorage(userId, sessionId, messages);
       }
 
+      // Save current lesson planning messages before switching
+      if (userId && sessionId && lessonMessages.length > 0) {
+        saveLessonMessagesToStorage(userId, sessionId, lessonMessages);
+      }
+
       // Switch to new session
       handleSessionSwitch(newSessionId);
     },
-    [userId, sessionId, messages, saveMessagesToStorage, handleSessionSwitch]
+    [userId, sessionId, messages, lessonMessages, saveMessagesToStorage, saveLessonMessagesToStorage, handleSessionSwitch]
   );
 
   // Combine loading states from both streaming and Genkit
@@ -387,14 +426,8 @@ export default function ChatInterface() {
                   scrollAreaRef={scrollAreaRef}
                   onSubmit={handleChatSubmit}
                   onCancel={handleChatCancel}
-                  sessionId={sessionId}
-                  onSessionIdChange={handleSessionSwitchWrapper}
                   messageEvents={messageEvents}
                   websiteCount={websiteCount}
-                  userId={userId}
-                  onUserIdChange={handleUserIdChange}
-                  onUserIdConfirm={handleUserIdConfirm}
-                  onCreateSession={handleCreateNewSession}
                 />
               )}
               

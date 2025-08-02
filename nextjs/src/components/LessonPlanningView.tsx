@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, Calendar, BookOpen, Send } from "lucide-react";
 import { Message } from "@/types";
+import ReactMarkdown from "react-markdown";
 
 interface LessonPlanningViewProps {
   onSubmit: (query: string, fileUrl?: string, fileName?: string) => void;
@@ -33,6 +34,22 @@ export function LessonPlanningView({
   const [weeklyPlan, setWeeklyPlan] = useState<WeeklyPlan[]>([]);
   const [isParsing, setIsParsing] = useState(false);
 
+  // Function to preprocess content and convert HTML to markdown
+  const preprocessContent = (content: string): string => {
+    return content
+      .replace(/<br\s*\/?>/gi, '\n') // Convert <br> to line breaks
+      .replace(/<br\s*\/?>/gi, '\n') // Handle self-closing <br/>
+      .replace(/<strong>(.*?)<\/strong>/gi, '**$1**') // Convert <strong> to **
+      .replace(/<b>(.*?)<\/b>/gi, '**$1**') // Convert <b> to **
+      .replace(/<em>(.*?)<\/em>/gi, '*$1*') // Convert <em> to *
+      .replace(/<i>(.*?)<\/i>/gi, '*$1*') // Convert <i> to *
+      .replace(/<u>(.*?)<\/u>/gi, '__$1__') // Convert <u> to __
+      .replace(/<div>(.*?)<\/div>/gi, '\n$1\n') // Convert <div> to line breaks
+      .replace(/<span>(.*?)<\/span>/gi, '$1') // Remove <span> tags
+      .replace(/\n\s*\n/g, '\n\n') // Clean up multiple line breaks
+      .trim();
+  };
+
   // Debug: Log messages received
   useEffect(() => {
     console.log("LessonPlanningView received messages:", messages);
@@ -41,18 +58,25 @@ export function LessonPlanningView({
 
   // Parse the last AI message for weekly plan table
   useEffect(() => {
+    console.log("=== LessonPlanningView Debug ===");
+    console.log("Messages length:", messages.length);
+    console.log("Is loading:", isLoading);
+    console.log("Weekly plan state:", weeklyPlan);
+    
     if (messages.length > 0) {
       const lastMessage = messages[messages.length - 1];
       console.log("Last message in lesson planning:", {
         type: lastMessage.type,
         contentLength: lastMessage.content?.length,
-        content: lastMessage.content,
+        content: lastMessage.content?.substring(0, 200) + "...",
         isLoading
       });
       
       if (lastMessage.type === "ai" && lastMessage.content && !isLoading) {
-        console.log("Parsing lesson plan content:", lastMessage.content);
+        console.log("Starting to parse lesson plan content");
+        setIsParsing(true);
         parseWeeklyPlan(lastMessage.content);
+        setIsParsing(false);
       } else {
         console.log("Not parsing because:", {
           isAI: lastMessage.type === "ai",
@@ -66,126 +90,165 @@ export function LessonPlanningView({
   }, [messages, isLoading]);
 
   const parseWeeklyPlan = (content: string) => {
-    setIsParsing(true);
-    console.log("Starting to parse weekly plan from content:", content);
+    console.log("=== parseWeeklyPlan called ===");
+    console.log("Content length:", content.length);
+    console.log("Content preview:", content.substring(0, 500));
     
-    try {
-      // Look for table structure in the content
-      const lines = content.split('\n').filter(line => line.trim());
-      console.log("Filtered lines:", lines);
-      const parsedPlan: WeeklyPlan[] = [];
-      
-      // Find the table rows (lines that start and end with |)
-      const tableRows = lines.filter(line => 
-        line.trim().startsWith('|') && line.trim().endsWith('|')
-      );
-      console.log("Table rows found:", tableRows);
-      
-      if (tableRows.length > 0) {
-        // Skip header and separator rows
-        const dataRows = tableRows.filter(row => {
-          const cleanRow = row.trim();
-          return !cleanRow.includes('---') && 
-                 !cleanRow.toLowerCase().includes('day') &&
-                 !cleanRow.toLowerCase().includes('activity') &&
-                 !cleanRow.toLowerCase().includes('objective') &&
-                 !cleanRow.toLowerCase().includes('materials');
-        });
-        console.log("Data rows after filtering:", dataRows);
-        
-        for (const row of dataRows) {
-          // Split by | and filter out empty cells
-          const cells = row.split('|').map(cell => cell.trim()).filter(cell => cell);
-          console.log("Processing row cells:", cells);
-          
-          if (cells.length >= 4) {
-            const day = cells[0];
-            const activity = cells[1];
-            const objective = cells[2];
-            const material = cells[3];
-            
-            // Check if this is a valid day
-            const dayMatch = day.match(/(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday)/i);
-            
-            if (dayMatch && activity && objective && material) {
-              const dayPlan: WeeklyPlan = {
-                day: dayMatch[1],
-                activities: [activity],
-                objectives: [objective],
-                materials: [material]
-              };
-              
-              parsedPlan.push(dayPlan);
-              console.log("Added day plan:", dayPlan);
-            }
-          }
-        }
-        
-        if (parsedPlan.length > 0) {
-          console.log("Final parsed plan:", parsedPlan);
-          setWeeklyPlan(parsedPlan);
-        } else {
-          console.log("No valid plans found in parsed data");
-          // Try alternative parsing method
-          parseAlternativeFormat(content);
-        }
-      } else {
-        console.log("No table rows found in content");
-        // Try alternative parsing method
-        parseAlternativeFormat(content);
+    // Try multiple table patterns
+    const tablePatterns = [
+      /\|.*\|.*\|.*\|.*\|.*\|[\s\S]*?(\|.*\|.*\|.*\|.*\|.*\|[\s\S]*?)(?=\n\n|\n$|$)/,
+      /\|.*\|.*\|.*\|.*\|[\s\S]*?(\|.*\|.*\|.*\|.*\|[\s\S]*?)(?=\n\n|\n$|$)/,
+      /\|.*\|.*\|.*\|[\s\S]*?(\|.*\|.*\|.*\|[\s\S]*?)(?=\n\n|\n$|$)/
+    ];
+    
+    let match = null;
+    let tableContent = "";
+    
+    for (const pattern of tablePatterns) {
+      match = content.match(pattern);
+      if (match) {
+        tableContent = match[1];
+        console.log("Found table with pattern:", pattern);
+        break;
       }
-    } catch (error) {
-      console.error('Error parsing weekly plan:', error);
     }
     
-    setIsParsing(false);
+    console.log("Table pattern match:", !!match);
+    
+    if (match && tableContent) {
+      console.log("Found table content:", tableContent);
+      
+      // Split into rows and parse
+      const rows = tableContent.trim().split('\n').filter(row => row.trim() && row.includes('|'));
+      console.log("Number of rows found:", rows.length);
+      
+      const parsedPlan: WeeklyPlan[] = [];
+      
+      for (const row of rows) {
+        console.log("Processing row:", row);
+        // Skip header row and separator row
+        if (row.includes('Day') || row.includes('---') || row.includes('|--')) {
+          console.log("Skipping header/separator row");
+          continue;
+        }
+        
+        const columns = row.split('|').map(col => col.trim()).filter(col => col);
+        console.log("Columns found:", columns.length, columns);
+        
+        // Handle different column counts
+        if (columns.length >= 4) {
+          const day = columns[0];
+          const lessonContent = columns[1] || "";
+          const learningObjectives = columns[2] || "";
+          const instructionalMethods = columns[3] || "";
+          const assessment = columns[4] || "";
+          
+          // Validate that this is actually a day
+          const dayMatch = day.match(/(Monday|Tuesday|Wednesday|Thursday|Friday)/i);
+          if (dayMatch) {
+            const dayPlan: WeeklyPlan = {
+              day: dayMatch[1],
+              activities: [lessonContent],
+              objectives: [learningObjectives],
+              materials: [instructionalMethods, assessment]
+            };
+            
+            parsedPlan.push(dayPlan);
+            console.log("Added day plan:", dayPlan);
+          } else {
+            console.log("Not a valid day:", day);
+          }
+        } else {
+          console.log("Row doesn't have enough columns:", columns.length);
+        }
+      }
+      
+      if (parsedPlan.length > 0) {
+        console.log("Final parsed plan:", parsedPlan);
+        setWeeklyPlan(parsedPlan);
+      } else {
+        console.log("No plans parsed from table, trying alternative parsing");
+        parseAlternativeFormat(content);
+      }
+    } else {
+      console.log("No table pattern found, trying alternative parsing");
+      parseAlternativeFormat(content);
+    }
   };
 
   const parseAlternativeFormat = (content: string) => {
-    console.log("Trying alternative parsing method");
+    console.log("Trying alternative format parsing");
     
-    // Look for day patterns in the content
-    const dayPatterns = /(Monday|Tuesday|Wednesday|Thursday|Friday)/gi;
-    const matches = content.match(dayPatterns);
+    // Look for any table-like structure or structured content
+    const lines = content.split('\n').filter(line => line.trim());
+    const parsedPlan: WeeklyPlan[] = [];
     
-    if (matches) {
-      console.log("Found day matches:", matches);
-      const parsedPlan: WeeklyPlan[] = [];
+    // First, try to find day sections
+    const daySections: { [key: string]: string[] } = {};
+    let currentDay = "";
+    
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
       
-      // Split content by days and parse each section
-      const sections = content.split(/(Monday|Tuesday|Wednesday|Thursday|Friday)/i);
-      
-      for (let i = 1; i < sections.length; i += 2) {
-        const day = sections[i];
-        const content = sections[i + 1] || '';
+      // Look for day patterns
+      const dayMatch = line.match(/(Monday|Tuesday|Wednesday|Thursday|Friday)/i);
+      if (dayMatch) {
+        currentDay = dayMatch[1];
+        daySections[currentDay] = [];
+        console.log("Found day section:", currentDay);
+      } else if (currentDay && line.trim()) {
+        // Add content to current day
+        daySections[currentDay].push(line.trim());
+      }
+    }
+    
+    console.log("Day sections found:", Object.keys(daySections));
+    
+    // Parse each day's content
+    for (const [day, content] of Object.entries(daySections)) {
+      if (content.length > 0) {
+        const fullContent = content.join('\n');
+        console.log(`Parsing content for ${day}:`, fullContent.substring(0, 200));
         
-        // Extract activity, objective, and materials from the content
-        const activityMatch = content.match(/Activity[:\s]*([^|]*)/i);
-        const objectiveMatch = content.match(/Objective[:\s]*([^|]*)/i);
-        const materialMatch = content.match(/Materials[:\s]*([^|]*)/i);
+        // Extract different sections
+        let lessonContent = "";
+        let learningObjectives = "";
+        let instructionalMethods = "";
+        let assessment = "";
         
-        if (activityMatch && objectiveMatch && materialMatch) {
+        // Look for content indicators
+        for (const line of content) {
+          if (line.includes('Content:') || line.includes('Lesson:') || line.includes('**Introduction')) {
+            lessonContent = line.replace(/^(Content|Lesson):\s*/, '').trim();
+          } else if (line.includes('Objective:') || line.includes('Goal:') || line.includes('**Remember:') || line.includes('**Understand:')) {
+            learningObjectives = line.replace(/^(Objective|Goal):\s*/, '').trim();
+          } else if (line.includes('Method:') || line.includes('Strategy:') || line.includes('**Direct Instruction:') || line.includes('**Inquiry-Based')) {
+            instructionalMethods = line.replace(/^(Method|Strategy):\s*/, '').trim();
+          } else if (line.includes('Assessment:') || line.includes('Evaluation:') || line.includes('**Formative:') || line.includes('**Summative:')) {
+            assessment = line.replace(/^(Assessment|Evaluation):\s*/, '').trim();
+          }
+        }
+        
+        // If we found any content, create a plan
+        if (lessonContent || learningObjectives || instructionalMethods || assessment) {
           const dayPlan: WeeklyPlan = {
             day: day,
-            activities: [activityMatch[1].trim()],
-            objectives: [objectiveMatch[1].trim()],
-            materials: [materialMatch[1].trim()]
+            activities: [lessonContent],
+            objectives: [learningObjectives],
+            materials: [instructionalMethods, assessment]
           };
           
           parsedPlan.push(dayPlan);
           console.log("Added day plan (alternative):", dayPlan);
         }
       }
-      
-      if (parsedPlan.length > 0) {
-        console.log("Final parsed plan (alternative):", parsedPlan);
-        setWeeklyPlan(parsedPlan);
-      } else {
-        // Try simple format as last resort
-        parseSimpleFormat(content);
-      }
+    }
+    
+    if (parsedPlan.length > 0) {
+      console.log("Alternative parsing successful:", parsedPlan);
+      setWeeklyPlan(parsedPlan);
     } else {
-      // Try simple format as last resort
+      console.log("Alternative parsing failed, trying simple format");
       parseSimpleFormat(content);
     }
   };
@@ -193,61 +256,86 @@ export function LessonPlanningView({
   const parseSimpleFormat = (content: string) => {
     console.log("Trying simple format parsing");
     
-    // Look for the table structure in a simpler way
-    const tableMatch = content.match(/\|.*\|.*\|.*\|/g);
-    if (tableMatch) {
-      console.log("Found table structure:", tableMatch);
+    const parsedPlan: WeeklyPlan[] = [];
+    const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+    
+    // Try different table patterns for each day
+    for (const day of daysOfWeek) {
+      console.log(`Looking for ${day} in content`);
       
-      const parsedPlan: WeeklyPlan[] = [];
-      const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+      // Try multiple patterns for each day
+      const patterns = [
+        new RegExp(`\\|\\s*${day}\\s*\\|\\s*([^|]*)\\|\\s*([^|]*)\\|\\s*([^|]*)\\|\\s*([^|]*)\\|`, 'i'),
+        new RegExp(`\\|\\s*${day}\\s*\\|\\s*([^|]*)\\|\\s*([^|]*)\\|\\s*([^|]*)\\|`, 'i'),
+        new RegExp(`\\|\\s*${day}\\s*\\|\\s*([^|]*)\\|\\s*([^|]*)\\|`, 'i')
+      ];
       
-      for (const day of daysOfWeek) {
-        // Look for the day in the content
-        const dayPattern = new RegExp(`\\|\\s*${day}\\s*\\|\\s*([^|]*)\\|\\s*([^|]*)\\|\\s*([^|]*)\\|`, 'i');
-        const match = content.match(dayPattern);
-        
+      let dayPlan: WeeklyPlan | null = null;
+      
+      for (const pattern of patterns) {
+        const match = content.match(pattern);
         if (match) {
-          const dayPlan: WeeklyPlan = {
+          console.log(`Found ${day} with pattern:`, pattern);
+          
+          const lessonContent = match[1]?.trim() || "";
+          const learningObjectives = match[2]?.trim() || "";
+          const instructionalMethods = match[3]?.trim() || "";
+          const assessment = match[4]?.trim() || "";
+          
+          dayPlan = {
             day: day,
-            activities: [match[1].trim()],
-            objectives: [match[2].trim()],
-            materials: [match[3].trim()]
+            activities: [lessonContent],
+            objectives: [learningObjectives],
+            materials: [instructionalMethods, assessment]
           };
           
-          parsedPlan.push(dayPlan);
-          console.log("Added day plan (simple):", dayPlan);
+          console.log("Created day plan (simple):", dayPlan);
+          break;
         }
       }
       
-      if (parsedPlan.length > 0) {
-        console.log("Final parsed plan (simple):", parsedPlan);
-        setWeeklyPlan(parsedPlan);
+      if (dayPlan) {
+        parsedPlan.push(dayPlan);
       }
+    }
+    
+    if (parsedPlan.length > 0) {
+      console.log("Final parsed plan (simple):", parsedPlan);
+      setWeeklyPlan(parsedPlan);
+    } else {
+      console.log("All parsing methods failed");
     }
   };
 
   const handleSubmit = () => {
     if (!grade.trim() || !topic.trim()) return;
     
-    const prompt = `You are a lesson planning agent. Create a detailed weekly lesson plan for Grade ${grade} on the topic: "${topic}". 
+    const prompt = `You are an expert curriculum developer and lesson planner. Create a comprehensive weekly lesson plan for Grade ${grade} on the topic: "${topic}". 
 
 IMPORTANT: You must respond with ONLY a markdown table in the following format:
 
-| Day | Activity | Objective | Materials |
-|-----|----------|-----------|-----------|
-| Monday | [Activity description] | [Learning objective] | [Required materials] |
-| Tuesday | [Activity description] | [Learning objective] | [Required materials] |
-| Wednesday | [Activity description] | [Learning objective] | [Required materials] |
-| Thursday | [Activity description] | [Learning objective] | [Required materials] |
-| Friday | [Activity description] | [Learning objective] | [Required materials] |
+| Day | Lesson Content | Learning Objectives | Instructional Methods | Assessment/Evaluation |
+|-----|----------------|-------------------|---------------------|---------------------|
+| Monday | [Core content/concept introduction] | [Specific, measurable learning objectives] | [Teaching strategies and methods] | [How to assess learning] |
+| Tuesday | [Content development and practice] | [Specific, measurable learning objectives] | [Teaching strategies and methods] | [How to assess learning] |
+| Wednesday | [Application and problem-solving] | [Specific, measurable learning objectives] | [Teaching strategies and methods] | [How to assess learning] |
+| Thursday | [Review and reinforcement] | [Specific, measurable learning objectives] | [Teaching strategies and methods] | [How to assess learning] |
+| Friday | [Assessment and synthesis] | [Specific, measurable learning objectives] | [Teaching strategies and methods] | [How to assess learning] |
 
 Requirements for each day:
-- Activities should be hands-on and engaging for Grade ${grade} students
-- Objectives should be clear and measurable
-- Materials should be low-cost and easily accessible
-- Include differentiated instruction strategies
-- Ensure progression of learning throughout the week
-- Make activities culturally relevant and age-appropriate
+- Lesson Content: Focus on core academic concepts, skills, and knowledge development
+- Learning Objectives: Use Bloom's Taxonomy (Remember, Understand, Apply, Analyze, Evaluate, Create) with specific, measurable outcomes
+- Instructional Methods: Include direct instruction, guided practice, collaborative learning, inquiry-based learning, and differentiated instruction strategies
+- Assessment/Evaluation: Include formative and summative assessment methods appropriate for Grade ${grade} level
+- Ensure logical progression of learning throughout the week
+- Align with grade-level standards and curriculum expectations
+- Include scaffolding and support for diverse learners
+- Maintain academic rigor while being age-appropriate
+
+FORMATTING REQUIREMENTS:
+- Use markdown formatting (**, *, __) for emphasis, NOT HTML tags
+- Use bullet points (- or *) for lists
+- Keep content concise but comprehensive
 
 Respond with ONLY the table, no additional text or explanations.`;
 
@@ -344,63 +432,144 @@ Respond with ONLY the table, no additional text or explanations.`;
                   Weekly Lesson Plan - Grade {grade} - {topic}
                 </CardTitle>
               </CardHeader>
-                             <CardContent>
-                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
+              <CardContent>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
                   {daysOfWeek.map((day) => {
                     const dayPlan = weeklyPlan.find(plan => 
                       plan.day.toLowerCase() === day.toLowerCase()
                     );
                     
-                                         return (
-                       <div key={day} className="border rounded-lg p-3 sm:p-4 bg-white shadow-sm">
-                         <h3 className="font-semibold text-gray-900 mb-2 sm:mb-3 text-center text-sm sm:text-base">
-                           {day}
-                         </h3>
+                    console.log(`Looking for ${day}, found:`, dayPlan);
+                    
+                    return (
+                      <div key={day} className="border rounded-lg p-3 sm:p-4 bg-white shadow-sm">
+                        <h3 className="font-semibold text-gray-900 mb-2 sm:mb-3 text-center text-sm sm:text-base">
+                          {day}
+                        </h3>
                         
                         {dayPlan ? (
                           <div className="space-y-3">
                             {dayPlan.activities.length > 0 && (
                               <div>
                                 <h4 className="text-sm font-medium text-gray-700 mb-1">
-                                  Activities
+                                  Lesson Content
                                 </h4>
-                                <ul className="text-xs text-gray-600 space-y-1">
+                                <div className="text-xs text-gray-600 space-y-1">
                                   {dayPlan.activities.map((activity, index) => (
-                                    <li key={index} className="list-disc list-inside">
-                                      {activity}
-                                    </li>
+                                    <div key={index} className="prose prose-sm max-w-none">
+                                      <ReactMarkdown
+                                        components={{
+                                          p: ({ children }) => <p className="mb-1">{children}</p>,
+                                          ul: ({ children }) => <ul className="list-disc list-inside space-y-1">{children}</ul>,
+                                          li: ({ children }) => <li className="text-xs">{children}</li>,
+                                          strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+                                          em: ({ children }) => <em className="italic">{children}</em>,
+                                          br: () => <br />,
+                                          // Handle HTML elements
+                                          div: ({ children, ...props }) => <div {...props}>{children}</div>,
+                                          span: ({ children, ...props }) => <span {...props}>{children}</span>,
+                                        }}
+                                        remarkPlugins={[]}
+                                        rehypePlugins={[]}
+                                      >
+                                        {preprocessContent(activity)}
+                                      </ReactMarkdown>
+                                    </div>
                                   ))}
-                                </ul>
+                                </div>
                               </div>
                             )}
                             
                             {dayPlan.objectives.length > 0 && (
                               <div>
                                 <h4 className="text-sm font-medium text-gray-700 mb-1">
-                                  Objectives
+                                  Learning Objectives
                                 </h4>
-                                <ul className="text-xs text-gray-600 space-y-1">
+                                <div className="text-xs text-gray-600 space-y-1">
                                   {dayPlan.objectives.map((objective, index) => (
-                                    <li key={index} className="list-disc list-inside">
-                                      {objective}
-                                    </li>
+                                    <div key={index} className="prose prose-sm max-w-none">
+                                      <ReactMarkdown
+                                        components={{
+                                          p: ({ children }) => <p className="mb-1">{children}</p>,
+                                          ul: ({ children }) => <ul className="list-disc list-inside space-y-1">{children}</ul>,
+                                          li: ({ children }) => <li className="text-xs">{children}</li>,
+                                          strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+                                          em: ({ children }) => <em className="italic">{children}</em>,
+                                          br: () => <br />,
+                                          // Handle HTML elements
+                                          div: ({ children, ...props }) => <div {...props}>{children}</div>,
+                                          span: ({ children, ...props }) => <span {...props}>{children}</span>,
+                                        }}
+                                        remarkPlugins={[]}
+                                        rehypePlugins={[]}
+                                      >
+                                        {preprocessContent(objective)}
+                                      </ReactMarkdown>
+                                    </div>
                                   ))}
-                                </ul>
+                                </div>
                               </div>
                             )}
                             
                             {dayPlan.materials.length > 0 && (
                               <div>
                                 <h4 className="text-sm font-medium text-gray-700 mb-1">
-                                  Materials
+                                  Instructional Methods
                                 </h4>
-                                <ul className="text-xs text-gray-600 space-y-1">
-                                  {dayPlan.materials.map((material, index) => (
-                                    <li key={index} className="list-disc list-inside">
-                                      {material}
-                                    </li>
+                                <div className="text-xs text-gray-600 space-y-1">
+                                  {dayPlan.materials.slice(0, 1).map((material, index) => (
+                                    <div key={index} className="prose prose-sm max-w-none">
+                                      <ReactMarkdown
+                                        components={{
+                                          p: ({ children }) => <p className="mb-1">{children}</p>,
+                                          ul: ({ children }) => <ul className="list-disc list-inside space-y-1">{children}</ul>,
+                                          li: ({ children }) => <li className="text-xs">{children}</li>,
+                                          strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+                                          em: ({ children }) => <em className="italic">{children}</em>,
+                                          br: () => <br />,
+                                          // Handle HTML elements
+                                          div: ({ children, ...props }) => <div {...props}>{children}</div>,
+                                          span: ({ children, ...props }) => <span {...props}>{children}</span>,
+                                        }}
+                                        remarkPlugins={[]}
+                                        rehypePlugins={[]}
+                                      >
+                                        {preprocessContent(material)}
+                                      </ReactMarkdown>
+                                    </div>
                                   ))}
-                                </ul>
+                                </div>
+                              </div>
+                            )}
+                            
+                            {dayPlan.materials.length > 1 && (
+                              <div>
+                                <h4 className="text-sm font-medium text-gray-700 mb-1">
+                                  Assessment/Evaluation
+                                </h4>
+                                <div className="text-xs text-gray-600 space-y-1">
+                                  {dayPlan.materials.slice(1).map((material, index) => (
+                                    <div key={index} className="prose prose-sm max-w-none">
+                                      <ReactMarkdown
+                                        components={{
+                                          p: ({ children }) => <p className="mb-1">{children}</p>,
+                                          ul: ({ children }) => <ul className="list-disc list-inside space-y-1">{children}</ul>,
+                                          li: ({ children }) => <li className="text-xs">{children}</li>,
+                                          strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+                                          em: ({ children }) => <em className="italic">{children}</em>,
+                                          br: () => <br />,
+                                          // Handle HTML elements
+                                          div: ({ children, ...props }) => <div {...props}>{children}</div>,
+                                          span: ({ children, ...props }) => <span {...props}>{children}</span>,
+                                        }}
+                                        remarkPlugins={[]}
+                                        rehypePlugins={[]}
+                                      >
+                                        {preprocessContent(material)}
+                                      </ReactMarkdown>
+                                    </div>
+                                  ))}
+                                </div>
                               </div>
                             )}
                           </div>
@@ -432,7 +601,7 @@ Respond with ONLY the table, no additional text or explanations.`;
       </div>
 
       {/* Fixed Input Area */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 border-t-2 border-gray-200 bg-white/95 backdrop-blur-md shadow-lg">
+      <div className="absolute bottom-0 left-0 right-0 z-50 border-t-2 border-gray-200 bg-white/95 backdrop-blur-md shadow-lg">
         <div className="w-full px-4 py-3 sm:px-6 sm:py-4">
           {isLoading && (
             <div className="flex justify-center">
