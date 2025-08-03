@@ -108,3 +108,97 @@
 .animation-delay-400 { animation-delay: 0.4s; }
 .animation-delay-600 { animation-delay: 0.6s; }
 .animation-delay-800 { animation-delay: 0.8s; }
+
+/* Mermaid Chart Styles */
+.mermaid-chart-container {
+  margin: 1rem 0;
+}
+
+.mermaid-chart {
+  background: white;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+.mermaid-chart svg {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Mermaid chart responsive adjustments */
+@media (max-width: 640px) {
+  .mermaid-chart {
+    font-size: 12px;
+  }
+  
+  .mermaid-chart svg {
+    font-size: 12px;
+  }
+}
+
+/* Chart header styling */
+.mermaid-chart-header {
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  border-bottom: 1px solid #e2e8f0;
+  padding: 0.75rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Chart content area */
+.mermaid-chart-content {
+  padding: 1rem;
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Loading state for charts */
+.mermaid-chart-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  color: #6b7280;
+}
+
+/* Error state for charts */
+.mermaid-chart-error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin: 1rem 0;
+}
+
+/* Code preview styling */
+.mermaid-code-preview {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.375rem;
+  padding: 0.75rem;
+  margin-top: 0.75rem;
+  font-size: 0.75rem;
+  overflow-x: auto;
+}
+
+/* Chart controls */
+.mermaid-chart-controls {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.mermaid-chart-controls button {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  border-radius: 0.25rem;
+  transition: all 0.2s;
+}
+
+.mermaid-chart-controls button:hover {
+  background-color: #e5e7eb;
+}

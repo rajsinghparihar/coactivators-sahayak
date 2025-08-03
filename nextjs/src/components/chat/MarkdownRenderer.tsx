@@ -2,6 +2,7 @@
 
 import ReactMarkdown, { Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { MermaidRenderer } from "../MermaidRenderer";
 
 // Enhanced markdown components for better styling with consistent light theme
 export const mdComponents: Partial<Components> = {
@@ -158,12 +159,22 @@ interface MarkdownRendererProps {
 /**
  * Dedicated markdown renderer component with consistent styling
  * Handles all markdown rendering with proper dark theme styling
+ * Now includes Mermaid chart rendering for code blocks
  */
 export function MarkdownRenderer({
   content,
   className = "",
   components = mdComponents,
 }: MarkdownRendererProps) {
+  // Check if content contains Mermaid code blocks
+  const hasMermaidBlocks = content.includes('```mermaid');
+  
+  if (hasMermaidBlocks) {
+    // Use MermaidRenderer for content with Mermaid blocks
+    return <MermaidRenderer content={content} className={className} />;
+  }
+  
+  // Use regular ReactMarkdown for content without Mermaid blocks
   return (
     <div className={`markdown-content ${className}`}>
       <ReactMarkdown components={components} remarkPlugins={[remarkGfm]}>

@@ -4,11 +4,15 @@ import { useRef, useCallback, useEffect, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { ChatMessagesView } from "@/components/ChatMessagesView";
 import { LessonPlanningView } from "@/components/LessonPlanningView";
+import { DifferentiatedMaterialsView } from "@/components/DifferentiatedMaterialsView";
+import { VisualAidGeneratorView } from "@/components/VisualAidGeneratorView";
 import { SidebarNavigation } from "@/components/SidebarNavigation";
 import { BackendHealthChecker } from "@/components/chat/BackendHealthChecker";
 import { useSession } from "@/hooks/useSession";
 import { useMessages } from "@/hooks/useMessages";
 import { useLessonPlanningMessages } from "@/hooks/useLessonPlanningMessages";
+import { useDifferentiatedMaterials } from "@/hooks/useDifferentiatedMaterials";
+import { useVisualAids } from "@/hooks/useVisualAids";
 import { useStreamingManager } from "@/components/chat/StreamingManager";
 import { useGenkitChat } from "@/hooks/useGenkitChat";
 import { Message } from "@/types";
@@ -42,8 +46,6 @@ export default function ChatInterface() {
   // Separate state for lesson planning
   const {
     lessonMessages,
-    lessonMessageEvents,
-    lessonWebsiteCount,
     addLessonMessage,
     setLessonMessages,
     setLessonMessageEvents,
@@ -51,6 +53,28 @@ export default function ChatInterface() {
     saveLessonMessagesToStorage,
     loadLessonMessagesFromStorage,
   } = useLessonPlanningMessages();
+
+  // Separate state for differentiated materials
+  const {
+    messages: differentiatedMaterials,
+    addMessage: addDifferentiatedMaterialsMessage,
+    setMessages: setDifferentiatedMaterials,
+    setMessageEvents: setDifferentiatedMaterialsEvents,
+    updateWebsiteCount: updateDifferentiatedMaterialsWebsiteCount,
+    saveMessagesToStorage: saveDifferentiatedMaterials,
+    loadMessagesFromStorage: loadDifferentiatedMaterials,
+  } = useDifferentiatedMaterials();
+
+  // Separate state for visual aid generator
+  const {
+    messages: visualAids,
+    addMessage: addVisualAidsMessage,
+    setMessages: setVisualAids,
+    setMessageEvents: setVisualAidsEvents,
+    updateWebsiteCount: updateVisualAidsWebsiteCount,
+    saveMessagesToStorage: saveVisualAids,
+    loadMessagesFromStorage: loadVisualAids,
+  } = useVisualAids();
 
   // Streaming management for text-only requests
   const streamingManager = useStreamingManager({
@@ -162,6 +186,116 @@ export default function ChatInterface() {
     },
   });
 
+  // Separate streaming manager for differentiated materials
+  const differentiatedMaterialsStreamingManager = useStreamingManager({
+    userId,
+    sessionId,
+    onMessageUpdate: (message: Message) => {
+      console.log("DifferentiatedMaterialsStreamingManager onMessageUpdate called:", { id: message.id, type: message.type, contentLength: message.content.length });
+      setDifferentiatedMaterials((prev) => {
+        // Check if message already exists
+        const existingIndex = prev.findIndex((msg) => msg.id === message.id);
+
+        if (existingIndex >= 0) {
+          // Update existing message
+          console.log("Updating existing differentiated materials message:", message.id);
+          return prev.map((msg) => (msg.id === message.id ? message : msg));
+        } else {
+          // Add new message
+          console.log("Adding new differentiated materials message:", message.id);
+          return [...prev, message];
+        }
+      });
+    },
+    onEventUpdate: (messageId, event) => {
+      setDifferentiatedMaterialsEvents((prev) => {
+        const newMap = new Map(prev);
+        const existingEvents = newMap.get(messageId) || [];
+        newMap.set(messageId, [...existingEvents, event]);
+        return newMap;
+      });
+    },
+    onWebsiteCountUpdate: updateDifferentiatedMaterialsWebsiteCount,
+  });
+
+  // Separate Genkit chat for differentiated materials
+  const differentiatedMaterialsGenkitChat = useGenkitChat({
+    userId: userId || "",
+    sessionId: sessionId || "",
+    onMessageUpdate: (message: Message) => {
+      console.log("DifferentiatedMaterialsGenkitChat onMessageUpdate called:", { id: message.id, type: message.type, contentLength: message.content.length });
+      setDifferentiatedMaterials((prev) => {
+        // Check if message already exists
+        const existingIndex = prev.findIndex((msg) => msg.id === message.id);
+
+        if (existingIndex >= 0) {
+          // Update existing message
+          console.log("Updating existing differentiated materials message:", message.id);
+          return prev.map((msg) => (msg.id === message.id ? message : msg));
+        } else {
+          // Add new message
+          console.log("Adding new differentiated materials message:", message.id);
+          return [...prev, message];
+        }
+      });
+    },
+  });
+
+  // Separate streaming manager for visual aids
+  const visualAidsStreamingManager = useStreamingManager({
+    userId,
+    sessionId,
+    onMessageUpdate: (message: Message) => {
+      console.log("VisualAidsStreamingManager onMessageUpdate called:", { id: message.id, type: message.type, contentLength: message.content.length });
+      setVisualAids((prev) => {
+        // Check if message already exists
+        const existingIndex = prev.findIndex((msg) => msg.id === message.id);
+
+        if (existingIndex >= 0) {
+          // Update existing message
+          console.log("Updating existing visual aids message:", message.id);
+          return prev.map((msg) => (msg.id === message.id ? message : msg));
+        } else {
+          // Add new message
+          console.log("Adding new visual aids message:", message.id);
+          return [...prev, message];
+        }
+      });
+    },
+    onEventUpdate: (messageId, event) => {
+      setVisualAidsEvents((prev) => {
+        const newMap = new Map(prev);
+        const existingEvents = newMap.get(messageId) || [];
+        newMap.set(messageId, [...existingEvents, event]);
+        return newMap;
+      });
+    },
+    onWebsiteCountUpdate: updateVisualAidsWebsiteCount,
+  });
+
+  // Separate Genkit chat for visual aids
+  const visualAidsGenkitChat = useGenkitChat({
+    userId: userId || "",
+    sessionId: sessionId || "",
+    onMessageUpdate: (message: Message) => {
+      console.log("VisualAidsGenkitChat onMessageUpdate called:", { id: message.id, type: message.type, contentLength: message.content.length });
+      setVisualAids((prev) => {
+        // Check if message already exists
+        const existingIndex = prev.findIndex((msg) => msg.id === message.id);
+
+        if (existingIndex >= 0) {
+          // Update existing message
+          console.log("Updating existing visual aids message:", message.id);
+          return prev.map((msg) => (msg.id === message.id ? message : msg));
+        } else {
+          // Add new message
+          console.log("Adding new visual aids message:", message.id);
+          return [...prev, message];
+        }
+      });
+    },
+  });
+
   // Load messages when session changes
   useEffect(() => {
     if (userId && sessionId) {
@@ -177,18 +311,36 @@ export default function ChatInterface() {
       // Reset lesson planning state for new session
       setLessonMessageEvents(new Map());
       updateLessonWebsiteCount(0);
+
+      // Load differentiated materials messages for the session
+      loadDifferentiatedMaterials(userId, sessionId);
+      setDifferentiatedMaterialsEvents(new Map());
+      updateDifferentiatedMaterialsWebsiteCount(0);
+
+      // Load visual aids messages for the session
+      loadVisualAids(userId, sessionId);
+      setVisualAidsEvents(new Map());
+      updateVisualAidsWebsiteCount(0);
     }
   }, [
     userId,
     sessionId,
     loadMessagesFromStorage,
     loadLessonMessagesFromStorage,
+    loadDifferentiatedMaterials,
+    loadVisualAids,
     setMessages,
     setLessonMessages,
+    setDifferentiatedMaterials,
+    setVisualAids,
     setMessageEvents,
     setLessonMessageEvents,
+    setDifferentiatedMaterialsEvents,
+    setVisualAidsEvents,
     updateWebsiteCount,
     updateLessonWebsiteCount,
+    updateDifferentiatedMaterialsWebsiteCount,
+    updateVisualAidsWebsiteCount,
   ]);
 
   // Save messages when they change
@@ -204,6 +356,20 @@ export default function ChatInterface() {
       saveLessonMessagesToStorage(userId, sessionId, lessonMessages);
     }
   }, [userId, sessionId, lessonMessages, saveLessonMessagesToStorage]);
+
+  // Save differentiated materials messages when they change
+  useEffect(() => {
+    if (userId && sessionId && differentiatedMaterials.length > 0) {
+      saveDifferentiatedMaterials(userId, sessionId, differentiatedMaterials);
+    }
+  }, [userId, sessionId, differentiatedMaterials, saveDifferentiatedMaterials]);
+
+  // Save visual aids messages when they change
+  useEffect(() => {
+    if (userId && sessionId && visualAids.length > 0) {
+      saveVisualAids(userId, sessionId, visualAids);
+    }
+  }, [userId, sessionId, visualAids, saveVisualAids]);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -357,6 +523,132 @@ export default function ChatInterface() {
     [userId, sessionId, addLessonMessage, lessonStreamingManager, lessonGenkitChat, handleSessionSwitch]
   );
 
+  // Handle differentiated materials message submission
+  const handleDifferentiatedMaterialsSubmit = useCallback(
+    async (
+      query: string,
+      fileUrl?: string,
+      fileName?: string,
+      requestUserId?: string,
+      requestSessionId?: string
+    ): Promise<void> => {
+      if (!query.trim() && !fileUrl) return;
+
+      // Use provided userId or current state
+      const currentUserId = requestUserId || userId;
+      if (!currentUserId) {
+        throw new Error("User ID is required to send messages");
+      }
+
+      try {
+        // Use provided session ID or current state
+        let currentSessionId = requestSessionId || sessionId;
+
+        if (!currentSessionId) {
+          console.log("No session ID available, generating new one");
+          currentSessionId = uuidv4();
+          handleSessionSwitch(currentSessionId);
+        }
+
+        // Add user message to differentiated materials
+        const userMessage: Message = {
+          type: "human",
+          content: query,
+          id: uuidv4(),
+          timestamp: new Date(),
+          ...(fileUrl ? { fileUrl } : {}),
+          ...(fileName ? { fileName } : {}),
+        };
+
+        addDifferentiatedMaterialsMessage(userMessage);
+
+        // Route to appropriate handler based on file presence
+        if (fileUrl && fileName) {
+          // Use Genkit for file requests
+          await differentiatedMaterialsGenkitChat.sendMessage(query, fileUrl, fileName);
+        } else {
+          // Use SSE streaming for text-only requests
+          await differentiatedMaterialsStreamingManager.submitMessage(query);
+        }
+      } catch (error) {
+        console.error("Error:", error);
+        const errorMessage: Message = {
+          type: "ai",
+          content: `Sorry, there was an error processing your request: ${
+            error instanceof Error ? error.message : "Unknown error"
+          }`,
+          id: uuidv4(),
+          timestamp: new Date(),
+        };
+        addDifferentiatedMaterialsMessage(errorMessage);
+      }
+    },
+    [userId, sessionId, addDifferentiatedMaterialsMessage, differentiatedMaterialsStreamingManager, differentiatedMaterialsGenkitChat, handleSessionSwitch]
+  );
+
+  // Handle visual aid generator message submission
+  const handleVisualAidGeneratorSubmit = useCallback(
+    async (
+      query: string,
+      fileUrl?: string,
+      fileName?: string,
+      requestUserId?: string,
+      requestSessionId?: string
+    ): Promise<void> => {
+      if (!query.trim() && !fileUrl) return;
+
+      // Use provided userId or current state
+      const currentUserId = requestUserId || userId;
+      if (!currentUserId) {
+        throw new Error("User ID is required to send messages");
+      }
+
+      try {
+        // Use provided session ID or current state
+        let currentSessionId = requestSessionId || sessionId;
+
+        if (!currentSessionId) {
+          console.log("No session ID available, generating new one");
+          currentSessionId = uuidv4();
+          handleSessionSwitch(currentSessionId);
+        }
+
+        // Add user message to visual aid generator
+        const userMessage: Message = {
+          type: "human",
+          content: query,
+          id: uuidv4(),
+          timestamp: new Date(),
+          ...(fileUrl ? { fileUrl } : {}),
+          ...(fileName ? { fileName } : {}),
+        };
+
+        addVisualAidsMessage(userMessage);
+
+        // Route to appropriate handler based on file presence
+        if (fileUrl && fileName) {
+          // Use Genkit for file requests
+          await visualAidsGenkitChat.sendMessage(query, fileUrl, fileName);
+        } else {
+          // Use SSE streaming for text-only requests
+          await visualAidsStreamingManager.submitMessage(query);
+        }
+      } catch (error) {
+        console.error("Error:", error);
+        const errorMessage: Message = {
+          type: "ai",
+          content: `Sorry, there was an error processing your request: ${
+            error instanceof Error ? error.message : "Unknown error"
+          }`,
+          id: uuidv4(),
+          timestamp: new Date(),
+        };
+        addVisualAidsMessage(errorMessage);
+      }
+    },
+    [userId, sessionId, addVisualAidsMessage, visualAidsStreamingManager, visualAidsGenkitChat, handleSessionSwitch]
+  );
+
   // Handle chat cancellation
   const handleChatCancel = useCallback((): void => {
     streamingManager.cancelStream();
@@ -381,6 +673,28 @@ export default function ChatInterface() {
     });
   }, [lessonStreamingManager, setLessonMessages]);
 
+  // Handle differentiated materials cancellation
+  const handleDifferentiatedMaterialsCancel = useCallback((): void => {
+    differentiatedMaterialsStreamingManager.cancelStream();
+    setDifferentiatedMaterials((prev) => {
+      const filtered = prev.filter(
+        (msg) => msg.type !== "ai" || msg.content.trim() !== ""
+      );
+      return filtered;
+    });
+  }, [differentiatedMaterialsStreamingManager, setDifferentiatedMaterials]);
+
+  // Handle visual aid generator cancellation
+  const handleVisualAidGeneratorCancel = useCallback((): void => {
+    visualAidsStreamingManager.cancelStream();
+    setVisualAids((prev) => {
+      const filtered = prev.filter(
+        (msg) => msg.type !== "ai" || msg.content.trim() !== ""
+      );
+      return filtered;
+    });
+  }, [visualAidsStreamingManager, setVisualAids]);
+
   // Handle session switching with message persistence
   const handleSessionSwitchWrapper = useCallback(
     (newSessionId: string): void => {
@@ -394,10 +708,20 @@ export default function ChatInterface() {
         saveLessonMessagesToStorage(userId, sessionId, lessonMessages);
       }
 
+      // Save current differentiated materials messages before switching
+      if (userId && sessionId && differentiatedMaterials.length > 0) {
+        saveDifferentiatedMaterials(userId, sessionId, differentiatedMaterials);
+      }
+
+      // Save current visual aid generator messages before switching
+      if (userId && sessionId && visualAids.length > 0) {
+        saveVisualAids(userId, sessionId, visualAids);
+      }
+
       // Switch to new session
       handleSessionSwitch(newSessionId);
     },
-    [userId, sessionId, messages, lessonMessages, saveMessagesToStorage, saveLessonMessagesToStorage, handleSessionSwitch]
+    [userId, sessionId, messages, lessonMessages, differentiatedMaterials, visualAids, saveMessagesToStorage, saveLessonMessagesToStorage, saveDifferentiatedMaterials, saveVisualAids, handleSessionSwitch]
   );
 
   // Combine loading states from both streaming and Genkit
@@ -437,6 +761,36 @@ export default function ChatInterface() {
                   isLoading={isLessonPlanningLoading}
                   onSubmit={handleLessonPlanningSubmit}
                   onCancel={handleLessonPlanningCancel}
+                />
+              )}
+
+              {activeTab === "differentiated-materials" && (
+                <DifferentiatedMaterialsView
+                  messages={differentiatedMaterials}
+                  isLoading={differentiatedMaterialsStreamingManager.isLoading || differentiatedMaterialsGenkitChat.isLoading}
+                  onSubmit={handleDifferentiatedMaterialsSubmit}
+                  onCancel={handleDifferentiatedMaterialsCancel}
+                  userId={userId}
+                  onUserIdChange={handleUserIdChange}
+                  onUserIdConfirm={handleUserIdConfirm}
+                  sessionId={sessionId}
+                  onSessionIdChange={handleSessionSwitchWrapper}
+                  onCreateSession={handleCreateNewSession}
+                />
+              )}
+
+              {activeTab === "visual-aid-generator" && (
+                <VisualAidGeneratorView
+                  messages={visualAids}
+                  isLoading={visualAidsStreamingManager.isLoading || visualAidsGenkitChat.isLoading}
+                  onSubmit={handleVisualAidGeneratorSubmit}
+                  onCancel={handleVisualAidGeneratorCancel}
+                  userId={userId}
+                  onUserIdChange={handleUserIdChange}
+                  onUserIdConfirm={handleUserIdConfirm}
+                  sessionId={sessionId}
+                  onSessionIdChange={handleSessionSwitchWrapper}
+                  onCreateSession={handleCreateNewSession}
                 />
               )}
             </SidebarNavigation>

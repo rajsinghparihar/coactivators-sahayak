@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, Calendar, BookOpen, Send } from "lucide-react";
 import { Message } from "@/types";
-import ReactMarkdown from "react-markdown";
+import { MarkdownRenderer } from "./chat/MarkdownRenderer";
 
 interface LessonPlanningViewProps {
   onSubmit: (query: string, fileUrl?: string, fileName?: string) => void;
@@ -457,23 +457,7 @@ Respond with ONLY the table, no additional text or explanations.`;
                                 <div className="text-xs text-gray-600 space-y-1">
                                   {dayPlan.activities.map((activity, index) => (
                                     <div key={index} className="prose prose-sm max-w-none">
-                                      <ReactMarkdown
-                                        components={{
-                                          p: ({ children }) => <p className="mb-1">{children}</p>,
-                                          ul: ({ children }) => <ul className="list-disc list-inside space-y-1">{children}</ul>,
-                                          li: ({ children }) => <li className="text-xs">{children}</li>,
-                                          strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
-                                          em: ({ children }) => <em className="italic">{children}</em>,
-                                          br: () => <br />,
-                                          // Handle HTML elements
-                                          div: ({ children, ...props }) => <div {...props}>{children}</div>,
-                                          span: ({ children, ...props }) => <span {...props}>{children}</span>,
-                                        }}
-                                        remarkPlugins={[]}
-                                        rehypePlugins={[]}
-                                      >
-                                        {preprocessContent(activity)}
-                                      </ReactMarkdown>
+                                      <MarkdownRenderer content={preprocessContent(activity)} />
                                     </div>
                                   ))}
                                 </div>
@@ -488,23 +472,7 @@ Respond with ONLY the table, no additional text or explanations.`;
                                 <div className="text-xs text-gray-600 space-y-1">
                                   {dayPlan.objectives.map((objective, index) => (
                                     <div key={index} className="prose prose-sm max-w-none">
-                                      <ReactMarkdown
-                                        components={{
-                                          p: ({ children }) => <p className="mb-1">{children}</p>,
-                                          ul: ({ children }) => <ul className="list-disc list-inside space-y-1">{children}</ul>,
-                                          li: ({ children }) => <li className="text-xs">{children}</li>,
-                                          strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
-                                          em: ({ children }) => <em className="italic">{children}</em>,
-                                          br: () => <br />,
-                                          // Handle HTML elements
-                                          div: ({ children, ...props }) => <div {...props}>{children}</div>,
-                                          span: ({ children, ...props }) => <span {...props}>{children}</span>,
-                                        }}
-                                        remarkPlugins={[]}
-                                        rehypePlugins={[]}
-                                      >
-                                        {preprocessContent(objective)}
-                                      </ReactMarkdown>
+                                      <MarkdownRenderer content={preprocessContent(objective)} />
                                     </div>
                                   ))}
                                 </div>
@@ -519,23 +487,7 @@ Respond with ONLY the table, no additional text or explanations.`;
                                 <div className="text-xs text-gray-600 space-y-1">
                                   {dayPlan.materials.slice(0, 1).map((material, index) => (
                                     <div key={index} className="prose prose-sm max-w-none">
-                                      <ReactMarkdown
-                                        components={{
-                                          p: ({ children }) => <p className="mb-1">{children}</p>,
-                                          ul: ({ children }) => <ul className="list-disc list-inside space-y-1">{children}</ul>,
-                                          li: ({ children }) => <li className="text-xs">{children}</li>,
-                                          strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
-                                          em: ({ children }) => <em className="italic">{children}</em>,
-                                          br: () => <br />,
-                                          // Handle HTML elements
-                                          div: ({ children, ...props }) => <div {...props}>{children}</div>,
-                                          span: ({ children, ...props }) => <span {...props}>{children}</span>,
-                                        }}
-                                        remarkPlugins={[]}
-                                        rehypePlugins={[]}
-                                      >
-                                        {preprocessContent(material)}
-                                      </ReactMarkdown>
+                                      <MarkdownRenderer content={preprocessContent(material)} />
                                     </div>
                                   ))}
                                 </div>
@@ -550,23 +502,7 @@ Respond with ONLY the table, no additional text or explanations.`;
                                 <div className="text-xs text-gray-600 space-y-1">
                                   {dayPlan.materials.slice(1).map((material, index) => (
                                     <div key={index} className="prose prose-sm max-w-none">
-                                      <ReactMarkdown
-                                        components={{
-                                          p: ({ children }) => <p className="mb-1">{children}</p>,
-                                          ul: ({ children }) => <ul className="list-disc list-inside space-y-1">{children}</ul>,
-                                          li: ({ children }) => <li className="text-xs">{children}</li>,
-                                          strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
-                                          em: ({ children }) => <em className="italic">{children}</em>,
-                                          br: () => <br />,
-                                          // Handle HTML elements
-                                          div: ({ children, ...props }) => <div {...props}>{children}</div>,
-                                          span: ({ children, ...props }) => <span {...props}>{children}</span>,
-                                        }}
-                                        remarkPlugins={[]}
-                                        rehypePlugins={[]}
-                                      >
-                                        {preprocessContent(material)}
-                                      </ReactMarkdown>
+                                      <MarkdownRenderer content={preprocessContent(material)} />
                                     </div>
                                   ))}
                                 </div>

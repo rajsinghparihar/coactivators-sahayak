@@ -6,6 +6,20 @@ const nextConfig: NextConfig = {
       bodySizeLimit: '10mb', // Set your desired limit, e.g., '5mb', '100kb'
     },
   },
+  // Configure static file serving
+  async headers() {
+    return [
+      {
+        source: '/uploads/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;

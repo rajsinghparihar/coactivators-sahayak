@@ -9,6 +9,7 @@ import {
 } from "@/components/ActivityTimeline";
 import { Copy, CopyCheck, Loader2, Bot, User } from "lucide-react";
 import { Message } from "@/types";
+import { FilePreview } from "./FilePreview";
 
 interface MessageItemProps {
   message: Message;
@@ -96,6 +97,17 @@ export function MessageItem({
           >
             {message.content}
           </ReactMarkdown>
+          
+          {/* File preview for human messages */}
+          {message.fileUrl && message.fileName && (
+            <div className="mt-3">
+              <FilePreview 
+                fileUrl={message.fileUrl} 
+                fileName={message.fileName}
+                className="bg-blue-50 border-blue-200"
+              />
+            </div>
+          )}
         </div>
         <div className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 bg-blue-600 rounded-full flex items-center justify-center shadow-md border border-blue-500/30">
           <User className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
@@ -104,13 +116,12 @@ export function MessageItem({
     );
   }
 
-  // AI message rendering
+  // AI message with no content and loading - show thinking indicator with timeline
   const hasTimelineEvents =
     messageEvents &&
     messageEvents.has(message.id) &&
     messageEvents.get(message.id)!.length > 0;
 
-  // AI message with no content and loading - show thinking indicator with timeline
   if (!message.content && isLoading) {
     return (
       <div className="flex items-start gap-2 sm:gap-3 max-w-[95%] sm:max-w-[90%] px-2 sm:px-0">
@@ -201,18 +212,13 @@ export function MessageItem({
           <MarkdownRenderer content={message.content} />
         </div>
 
-        {/* File attachment rendering */}
+        {/* File preview for AI messages */}
         {message.fileUrl && message.fileName && (
-          <div className="mt-2">
-            <a
-              href={message.fileUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-600 underline break-all text-sm"
-              download={message.fileName}
-            >
-              📎 {message.fileName}
-            </a>
+          <div className="mt-3">
+            <FilePreview 
+              fileUrl={message.fileUrl} 
+              fileName={message.fileName}
+            />
           </div>
         )}
 

@@ -43,19 +43,29 @@ export function InputForm({
     let fileName: string | undefined = undefined;
     if (selectedFile) {
       setUploading(true);
-      const formData = new FormData();
-      formData.append("file", selectedFile);
-      const res = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-      });
-      if (res.ok) {
-        const data = await res.json();
-        fileUrl = data.fileUrl;
-        fileName = data.fileName;
+      try {
+        const formData = new FormData();
+        formData.append("file", selectedFile);
+        const res = await fetch("/api/upload", {
+          method: "POST",
+          body: formData,
+        });
+        if (res.ok) {
+          const data = await res.json();
+          fileUrl = data.fileUrl;
+          fileName = data.fileName;
+          console.log("File uploaded successfully:", { fileUrl, fileName });
+        } else {
+          console.error("File upload failed:", res.status, res.statusText);
+          const errorData = await res.json().catch(() => ({}));
+          console.error("Upload error details:", errorData);
+        }
+      } catch (error) {
+        console.error("File upload error:", error);
+      } finally {
+        setUploading(false);
+        setSelectedFile(null);
       }
-      setUploading(false);
-      setSelectedFile(null);
     }
     onSubmit(inputValue.trim(), fileUrl, fileName);
     setInputValue("");

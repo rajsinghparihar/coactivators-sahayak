@@ -33,6 +33,8 @@ export function useGenkitChat({
       setIsLoading(true);
 
       try {
+        console.log("Sending Genkit chat request:", { message: message?.substring(0, 100), fileUrl, fileName, userId, sessionId });
+        
         const response = await fetch("/api/genkit-chat", {
           method: "POST",
           headers: {
@@ -47,12 +49,16 @@ export function useGenkitChat({
           }),
         });
 
+        console.log("Genkit chat response status:", response.status);
+
         if (!response.ok) {
           const errorData = await response.json();
+          console.error("Genkit chat error response:", errorData);
           throw new Error(errorData.error || "Failed to send message");
         }
 
         const data = await response.json();
+        console.log("Genkit chat success, response length:", data.response?.length);
         
         // Create AI response message with UUID to prevent ID collisions
         const aiMessage: Message = {

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Sidebar, SidebarHeader, SidebarContent } from "@/components/ui/sidebar";
 import { BurgerMenu } from "@/components/ui/burger-menu";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Bot, BookOpen, X } from "lucide-react";
+import { Bot, BookOpen, X, GraduationCap, Image } from "lucide-react";
 import { UserIdInput } from "@/components/chat/UserIdInput";
 import { SessionSelector } from "@/components/chat/SessionSelector";
 
@@ -139,6 +139,20 @@ export function SidebarNavigation({
                     >
                       <BookOpen className="h-4 w-4" />
                       Lesson Planning
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="differentiated-materials" 
+                      className="flex items-center gap-2 justify-start data-[state=active]:bg-white data-[state=active]:shadow-sm"
+                    >
+                      <GraduationCap className="h-4 w-4" />
+                      Differentiated Materials
+                    </TabsTrigger>
+                    <TabsTrigger 
+                      value="visual-aid-generator" 
+                      className="flex items-center gap-2 justify-start data-[state=active]:bg-white data-[state=active]:shadow-sm"
+                    >
+                      <Image className="h-4 w-4" />
+                      Visual Aid Generator
                     </TabsTrigger>
                   </TabsList>
                 </Tabs>
